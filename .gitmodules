@@ -1,0 +1,3 @@
+[submodule "Assets/Extension/LGK.Networking"]
+	path = Assets/Extension/LGK.Networking
+	url = https://github.com/NED-Studio/LGK.Networking
