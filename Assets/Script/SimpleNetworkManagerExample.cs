@@ -46,7 +46,7 @@ namespace LGK.Networking.Example
             {
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    m_ClientNetworkManager.SendReliable(TestMessage.MsgCode, new TestMessage("Hello from server"));
+                    SendHeloToClient();
                 }
 
                 m_ServerNetworkManager.ProcessMessage();
@@ -56,7 +56,7 @@ namespace LGK.Networking.Example
             {
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    m_ClientNetworkManager.SendReliable(TestMessage.MsgCode, new TestMessage("Hello from client"));
+                    SendHelloToServer();
                 }
 
                 m_ClientNetworkManager.ProcessMessage();
@@ -71,11 +71,22 @@ namespace LGK.Networking.Example
 
         #region Server Peer
 
+        int m_ClientConnectionId = 0;
+        void SendHeloToClient()
+        {
+            if (m_ClientConnectionId != 0)
+            {
+                m_ServerNetworkManager.SendReliable(m_ClientConnectionId, TestMessage.MsgCode, new TestMessage("Hello from server"));
+            }
+        }
+
         void Server_OnClientConnected(IConnection conn)
         {
             Assert.IsTrue(conn.IsConnected == true);
 
             Debug.Log("Server_OnClientConnected : " + conn.ConnectionId);
+
+            m_ClientConnectionId = conn.ConnectionId;
         }
 
         void Server_OnClientDisconnected(IConnection conn)
@@ -97,9 +108,15 @@ namespace LGK.Networking.Example
 
         #region Client Manager
 
+        void SendHelloToServer()
+        {
+            m_ClientNetworkManager.SendReliable(TestMessage.MsgCode, new TestMessage("Hello from client"));
+        }
+
         void ClientManager_Connecting()
         {
             Assert.IsTrue(m_ClientNetworkManager.Connection.IsConnected == false);
+
             Debug.Log("ClientManager_Connecting");
         }
 
@@ -116,7 +133,7 @@ namespace LGK.Networking.Example
             Assert.IsTrue(m_ClientNetworkManager.Connection.IsConnected == true);
             Assert.IsTrue(m_ClientNetworkManager.Connection.LastError == NetworkError.None);
 
-            Debug.Log($"ClientManager_ConnectingConnected");
+            Debug.Log("ClientManager_ConnectingConnected");
         }
 
         void ClientManager_Diconnected()
@@ -124,7 +141,7 @@ namespace LGK.Networking.Example
             Assert.IsTrue(m_ClientNetworkManager.Connection.IsConnected == false);
             Assert.IsTrue(m_ClientNetworkManager.Connection.LastError == NetworkError.None);
 
-            Debug.Log($"ClientManager_Diconnected");
+            Debug.Log("ClientManager_Diconnected");
         }
 
         void ClientManager_TestMessage(IConnection conn, NetworkReader reader)
